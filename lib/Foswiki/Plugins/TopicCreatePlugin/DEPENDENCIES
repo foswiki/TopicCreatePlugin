@@ -1,0 +1,3 @@
+# Dependecies for TopicCreatePlugin
+cp,>=0,unix,Required Unix utility
+mkdir,>=0,unix,Required Unix utility

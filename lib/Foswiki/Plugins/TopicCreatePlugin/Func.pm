@@ -1,8 +1,9 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
+# Copyright (C) 2009 Andrew Jones, andrewjones86@gmail.com
 # Copyright (C) 2005-2006 Peter Thoeny, peter@thoeny.org
 #
-# For licensing info read LICENSE file in the TWiki root.
+# For licensing info read LICENSE file in the Foswiki root.
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -22,7 +23,7 @@
 # performance reasons, so it doesn't get compiled until it
 # is actually used.
 
-package TWiki::Plugins::TopicCreatePlugin::Func;
+package Foswiki::Plugins::TopicCreatePlugin::Func;
 
 use strict;
 
@@ -48,7 +49,7 @@ sub init
     # initialize variables, once per page view
 
     # Module initialized
-    TWiki::Func::writeDebug( "- TWiki::Plugins::TopicCreatePlugin::Func::init( $web.$topic )" ) if $debug;
+    Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::Func::init( $web.$topic )" ) if $debug;
     return 1;
 }
 
@@ -62,13 +63,13 @@ sub handleTopicCreate
     }
     my $errVar = "%<nop>TOPICCREATE{$theArgs}%";
 
-    my $template = TWiki::Func::extractNameValuePair( $theArgs, "template" ) ||
+    my $template = Foswiki::Func::extractNameValuePair( $theArgs, "template" ) ||
         return _errorMsg( $errVar, "Parameter =templatete= is missing or empty." );
-    my $parameters = TWiki::Func::extractNameValuePair( $theArgs, "parameters" ) || "";
-    my $topicName = TWiki::Func::extractNameValuePair( $theArgs, "topic" ) ||
-                    TWiki::Func::extractNameValuePair( $theArgs, "name" ) ||
+    my $parameters = Foswiki::Func::extractNameValuePair( $theArgs, "parameters" ) || "";
+    my $topicName = Foswiki::Func::extractNameValuePair( $theArgs, "topic" ) ||
+                    Foswiki::Func::extractNameValuePair( $theArgs, "name" ) ||
         return _errorMsg( $errVar, "Parameter =topic= is missing or empty." );
-    my $disable = TWiki::Func::extractNameValuePair( $theArgs, "disable" ) || "";
+    my $disable = Foswiki::Func::extractNameValuePair( $theArgs, "disable" ) || "";
 
     if($disable eq $topic) {
 	#  saving the outer template itself should not invoke the create
@@ -78,9 +79,9 @@ sub handleTopicCreate
     # SMELL: shouldn't this expand all variables?  (eg, if you using something like Web.%NEWTOPIC%?)
     # should i just expand the loaded topic or continue expanded the variables in these variables
     # (i'm concerned about the implications of expanding the topic because this can be called recursively)
-    $topicName = TWiki::Func::expandCommonVariables( $topicName, $theTopic, $theWeb );
-    $template = TWiki::Func::expandCommonVariables( $template, $theTopic, $theWeb );
-    # expand relevant twikiVariables
+    $topicName = Foswiki::Func::expandCommonVariables( $topicName, $theTopic, $theWeb );
+    $template = Foswiki::Func::expandCommonVariables( $template, $theTopic, $theWeb );
+    # expand relevant Foswiki Macros
 #    $topicName =~ s/%TOPIC%/$theTopic/go;
 #    $topicName =~ s/%WEB%/$theWeb/go;
 #    $template =~ s/%TOPIC%/$theTopic/go;
@@ -92,7 +93,7 @@ sub handleTopicCreate
         $topicName = $2;
     }
 
-    if( TWiki::Func::topicExists( $topicWeb, $topicName ) ) {
+    if( Foswiki::Func::topicExists( $topicWeb, $topicName ) ) {
       #  Silently fail
       return "";
     }
@@ -105,21 +106,21 @@ sub handleTopicCreate
     }
 
     # Error, Warn user
-    unless( &TWiki::Func::topicExists( $templateWeb, $template ) ) {
+    unless( &Foswiki::Func::topicExists( $templateWeb, $template ) ) {
         return _errorMsg( $errVar, "Template <nop>$templateWeb.$template does not exist.");
     }
 
-    my $text = &TWiki::Func::readTopicText( $templateWeb, $template, "", 1 );
+    my $text = &Foswiki::Func::readTopicText( $templateWeb, $template, "", 1 );
 
     # Set topic parent
     # SMELL: should use $meta object
     $text = _setMetaData( $text, "TOPICPARENT", $theTopic );
 
-    # SMELL: replace 'gmtime' with twiki preferences variable (i think there's one defined for this...)
-    my $localDate = &TWiki::Func::formatTime( time(), "\$day \$month \$year", "gmtime" );
+    # SMELL: replace 'gmtime' with foswiki preferences variable (i think there's one defined for this...)
+    my $localDate = &Foswiki::Func::formatTime( time(), "\$day \$month \$year", "gmtime" );
 
     # SMELL: replace with expandVariablesOnTopicCreation( $text );
-    my $wikiUserName = &TWiki::Func::userToWikiName( $user );
+    my $wikiUserName = &Foswiki::Func::userToWikiName( $user );
     $text =~ s/%NOP{.*?}%//gos;  # Remove filler: Use it to remove access control at time of
     $text =~ s/%NOP%//go;        # topic instantiation or to prevent search from hitting a template
     $text =~ s/%DATE%/$localDate/go;
@@ -136,7 +137,7 @@ sub handleTopicCreate
     }
 
     my $ptemp = join  ", ", @param;
-    &TWiki::Func::writeDebug( "- TWiki::Plugins::TopicCreatePlugin::topicCreate "
+    &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::topicCreate "
        . "$topicName $ptemp $parameters") if $debug;
 
     my $passedPar = "";
@@ -148,7 +149,7 @@ sub handleTopicCreate
     # END SMELL
 
     # Copy Attachments over
-    my $pubDir = &TWiki::Func::getPubDir();
+    my $pubDir = &Foswiki::Func::getPubDir();
     if( -e     "$pubDir/$templateWeb/$template" ) {
         # Right now if topic already exists, it silently fails above,
         # need to fix this if something else happens
@@ -157,10 +158,10 @@ sub handleTopicCreate
     }
 
     # Recursively handle TOPICCREATE and TOPICATTCH
-    $text =~ s/%TOPICCREATE{(.*)}%[\n\r]*/handleTopicCreate( $1, $topicName )/geo;
-    $text =~ s/%TOPICATTCH{(.*)}%[\n\r]*/handleTopicAttach( $1, $topicName )/geo;
+    $text =~ s/%TOPICCREATE{(.*)}%[\n\r]*/handleTopicCreate( $1, $theWeb, $topicName )/geo;
+    $text =~ s/%TOPICATTCH{(.*)}%[\n\r]*/handleTopicAttach( $1, $theWeb, $topicName )/geo;
 
-    my $error = &TWiki::Func::saveTopicText( $topicWeb, $topicName, $text, 1, "dont notify" );
+    my $error = &Foswiki::Func::saveTopicText( $topicWeb, $topicName, $text, 1, "dont notify" );
 
     if( $error ) {
         return "%RED%Error saving $topicName%ENDCOLOR%$error";
@@ -175,23 +176,23 @@ sub handleTopicPatch
     my( $theArgs, $theWeb, $theTopic, $theTopicText ) = @_;
 
     my $errVar = "%<nop>TOPICPATCH{$theArgs}%";
-    my $topicName = TWiki::Func::extractNameValuePair( $theArgs, "topic" ) ||
+    my $topicName = Foswiki::Func::extractNameValuePair( $theArgs, "topic" ) ||
         return "";   #  Silently fail if not specified
-    my $action = TWiki::Func::extractNameValuePair( $theArgs, "action" ) ||
+    my $action = Foswiki::Func::extractNameValuePair( $theArgs, "action" ) ||
         return _errorMsg( $errVar, "Missing =action= parameter" );
     unless( $action =~ /^(append|replace)$/ ) {
         return _errorMsg( $errVar, "Unsupported =action= parameter" );
     }
-    my $formfield = TWiki::Func::extractNameValuePair( $theArgs, "formfield" ) ||
+    my $formfield = Foswiki::Func::extractNameValuePair( $theArgs, "formfield" ) ||
         return _errorMsg( $errVar, "Missing =formfield= parameter" );
-    my $value = TWiki::Func::extractNameValuePair( $theArgs, "value" ) || "";
+    my $value = Foswiki::Func::extractNameValuePair( $theArgs, "value" ) || "";
 
-    # expand relevant TWiki Variables
+    # expand relevant Foswiki Variables
     $topicName =~ s/%TOPIC%/$theTopic/go;
     $topicName =~ s/%WEB%/$theWeb/go;
     $topicName =~ s/.*\.//go;  # cut web for security (only current web)
 
-    my $text = TWiki::Func::readTopicText( $theWeb, $topicName );
+    my $text = Foswiki::Func::readTopicText( $theWeb, $topicName );
 
     if( $text =~ /^http/ ) {
         return _errorMsg( $errVar, "No permission to update '$topicName'" );
@@ -201,7 +202,7 @@ sub handleTopicPatch
 
     $text = _setMetaData( $text, "FIELD", $value, $formfield );
 
-    my $error = TWiki::Func::saveTopicText( $theWeb, $topicName, $text, "", "dont notify" );
+    my $error = Foswiki::Func::saveTopicText( $theWeb, $topicName, $text, "", "dont notify" );
 
     if( $error ) {
         return _errorMsg( $errVar, "Can't update '$topicName' due to permissions" );
@@ -217,15 +218,15 @@ sub handleTopicAttach
     my( $theArgs, $attachMetaDataRef ) = @_;
 
     my $errVar = "%<nop>TOPICATTACH{$theArgs}%";
-    my $fromTopic = TWiki::Func::extractNameValuePair( $theArgs, "fromtopic" ) ||
+    my $fromTopic = Foswiki::Func::extractNameValuePair( $theArgs, "fromtopic" ) ||
         return _errorMsg( $errVar, "Missing =fromtopic= parameter" );
-    my $fromFile = TWiki::Func::extractNameValuePair( $theArgs, "fromfile" ) ||
+    my $fromFile = Foswiki::Func::extractNameValuePair( $theArgs, "fromfile" ) ||
         return _errorMsg( $errVar, "Missing =fromfile= parameter" );
-    my $attachComment = TWiki::Func::extractNameValuePair( $theArgs, "comment" );
-    my $disable = TWiki::Func::extractNameValuePair( $theArgs, "disable" ) || "";
+    my $attachComment = Foswiki::Func::extractNameValuePair( $theArgs, "comment" );
+    my $disable = Foswiki::Func::extractNameValuePair( $theArgs, "disable" ) || "";
 
     ## 11/18/05: override of attachment name not yet supported, requires messing with meta info
-    ## my $name = TWiki::Func::extractNameValuePair( $theArgs, "name" ) || $fromFile;
+    ## my $name = Foswiki::Func::extractNameValuePair( $theArgs, "name" ) || $fromFile;
     my $name = $fromFile;
 
     if($disable eq $topic) {
@@ -249,7 +250,7 @@ sub handleTopicAttach
     # Copy attachment over
     if( _existAttachment( $fromTopicWeb, $fromTopic, $fromFile ) ) {
         _copyAttachment( $fromTopicWeb, $fromTopic, $fromFile, $web, $topic, $name );
-        my $fromTopicText = &TWiki::Func::readTopicText( $fromTopicWeb, $fromTopic, "", 1 );
+        my $fromTopicText = &Foswiki::Func::readTopicText( $fromTopicWeb, $fromTopic, "", 1 );
         $fromTopicText =~ m/(%META:FILEATTACHMENT\{name=\"$fromFile.*?\}%)/;
 	my $attachInfo = $1;
 	$attachInfo =~ s/attr="h"/attr=""/;
@@ -259,7 +260,7 @@ sub handleTopicAttach
 	}
         push @$attachMetaDataRef, ($attachInfo);
     } else {
-        &TWiki::Func::writeDebug( "- TWiki::Plugins::TopicCreatePlugin::handleTopicAttach:: $fromFile does not exist in $fromTopicWeb/$fromTopic" ) if $debug;
+        &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::handleTopicAttach:: $fromFile does not exist in $fromTopicWeb/$fromTopic" ) if $debug;
         return _errorMsg( $errVar, "Attachment =$fromFile= does not exist in source topic $fromTopicWeb.$fromTopic" );
     }
     return "";
@@ -326,9 +327,9 @@ sub _existAttachment
 {
     my ( $theWeb, $theTopic, $theFile ) = @_;
 
-    my $pubDir = &TWiki::Func::getPubDir();
+    my $pubDir = &Foswiki::Func::getPubDir();
 
-        &TWiki::Func::writeDebug( "- TWiki::Plugins::TopicCreatePlugin::checking $pubDir/$theWeb/$theTopic/$theFile");
+        &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::checking $pubDir/$theWeb/$theTopic/$theFile");
 
     return( -e "$pubDir/$theWeb/$theTopic/$theFile" );
 }
@@ -338,14 +339,14 @@ sub _copyAttachment
 {
     my ( $fromWeb, $fromTopic, $fromFile, $toWeb, $toTopic, $toFile ) = @_;
 
-    my $pubDir = &TWiki::Func::getPubDir();
+    my $pubDir = &Foswiki::Func::getPubDir();
     unless( -e "$pubDir/$toWeb/$toTopic") {
         `$mkdirCmd $pubDir/$toWeb/$toTopic`;
     }
     #  IMPLICIT ASSUMPTION of RCS backend storage, should really use storage api
     `$cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile   $pubDir/$toWeb/$toTopic/$toFile`;
     `$cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile,v $pubDir/$toWeb/$toTopic/$toFile,v`;
-    &TWiki::Func::writeDebug( "- TWiki::Plugins::TopicCreatePlugin::copyAttachment from $fromWeb/$fromTopic/$fromFile to $toWeb/$toTopic/$toFile    -- $cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile,v $pubDir/$toWeb/$toTopic/$toFile,v") if $debug;
+    &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::copyAttachment from $fromWeb/$fromTopic/$fromFile to $toWeb/$toTopic/$toFile    -- $cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile,v $pubDir/$toWeb/$toTopic/$toFile,v") if $debug;
 
 }
 
