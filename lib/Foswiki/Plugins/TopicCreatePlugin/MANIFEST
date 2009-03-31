@@ -1,3 +1,3 @@
-lib/Foswiki/Plugins/TopicCreatePlugin.pm
-lib/Foswiki/Plugins/TopicCreatePlugin/Func.pm
-data/System/TopicCreatePlugin.txt
+lib/Foswiki/Plugins/TopicCreatePlugin.pm 0644 Perl module
+lib/Foswiki/Plugins/TopicCreatePlugin/Func.pm 0644 Perl module
+data/System/TopicCreatePlugin.txt 0644 Documentation

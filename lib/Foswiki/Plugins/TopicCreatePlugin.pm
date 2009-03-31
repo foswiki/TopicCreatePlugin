@@ -39,9 +39,7 @@ sub initPlugin
     ( $topic, $web, $user, $installWeb ) = @_;
 
     # Get plugin debug flag
-    $debug = Foswiki::Func::getPreferencesFlag( "TOPICCREATEPLUGIN_DEBUG" );
-#REMOVE THIS:
-##$debug=1;
+    $debug = Foswiki::Func::getPluginPreferencesFlag( "DEBUG" );
 
     # Plugin correctly initialized
     Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::initPlugin( $web.$topic ) is OK" ) if $debug;
@@ -58,7 +56,7 @@ sub beforeSaveHandler
 
     unless( $_[0] =~ /%TOPIC(CREATE|ATTACH)\{.*?\}%/ ) {
         # nothing to do
-        return;
+        return 1;
     }
 
     require Foswiki::Plugins::TopicCreatePlugin::Func;
@@ -70,7 +68,7 @@ sub beforeSaveHandler
 
     $_[0] =~ s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1], $_[0] )/geo;
 
-    # To be tested and documented
+    # To be completed, tested and documented
     # $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/geo;
 
     if ($_[0] =~ /%TOPICATTACH/){

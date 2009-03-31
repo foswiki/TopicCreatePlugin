@@ -25,7 +25,7 @@ This Plugin allows you to automatically create topics or attach files at topic s
 
 ---++ <nop>TOPICATTACH - Automatically Copy Attachments to a Topic 
 
-	* Example scenario: You have a template topic and would like to attach a file whose's content or name is determined by URL parameters at topic creation time.  This is usually done for a topic that was just created via TOPICCREATE as described above.
+	* Example scenario: You have a template topic and would like to attach a file whose content or name is determined by URL parameters at topic creation time.  This is usually done for a topic that was just created via TOPICCREATE as described above.
 	* Syntax: =%<nop>TOPICATTACH{ &lt;attributes&gt; }%=
 	* Attributes recognized
 	  | *Attribute* | *Meaning* | *Valid input* | *Default* |
@@ -39,9 +39,9 @@ This Plugin allows you to automatically create topics or attach files at topic s
 	* The =fromtopic= can specify a different web if desired.  For example =Foswiki<nop>.Some<nop>Template= would be valid as a =fromtopic=
 	* To prevent the action from happening in your template topic you *must* provide the =disable= parameter with the topic name containing the =%<nop>TOPICATTACH%=.
 
-Limitations/TODO:
-	* There should be a =name= argument to rename the topic as it is copied
-	* The =TOPICATTACH= must be in the 'top level' topic being saved by a =TOPICCREATE=.  It can not be in a recursive/subordinate topic invoked by the TOPICCREATE.
+---++ Limitations/TODO
+   * The =TOPICATTACH= must be in the 'top level' topic being saved by a =TOPICCREATE=.  It can not be in a recursive/subordinate topic invoked by the TOPICCREATE
+   * There is a half-baked =%<nop>TOPICPATCH%= implementation from this plugins TWiki days which requires completing, testing and documenting. You are more than welcome to implement this if you would find it useful.
 
 ---++ Plugin Settings
 
@@ -52,12 +52,6 @@ Plugin settings are stored as preferences variables. To reference a plugin setti
 
 	* Debug plugin: (See output in =data/debug.txt=)
 		* Set DEBUG = 0
-
----++ Known issues
-
-	* This Plugin is Unix specific and depends on the Unix utilities =cp= and =mkdir=.
-	* For safety reasons, the path to the utilities is hardcoded in the Plugin module. The path might need to be changed depending on your environment.
-	* Precautions have been taken to make this Plugin safe. It does not have ANY WARRANTY, does not even have the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. It is up to the administrator to decide if this Plugin is safe for a public Foswiki site.
 
 ---++ Installation Instructions
 
@@ -77,6 +71,7 @@ Plugin settings are stored as preferences variables. To reference a plugin setti
 |  Plugin Release: | %$RELEASE% |
 |  Plugin Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  31 Mar 2009: | Foswikitask:Item1262 - Ported to Foswiki and released as 1.0; Removed dependency on Unix utilities =cp= and =mkdir=, should now work on any OS that Foswiki does; Improved code to make it cleaner and use more of the official API; Removed depreciated API calls -- Foswiki:Main.AndrewJones |
 |  11686 | TWikibug:Item2956 - Freeze !TWikiRelease04x00 and copy it to new branch MAIN |
 |  10613 | TWikibug:Item2473 - files in pub and data directories shouldn't be marked executable in svn (Ordnung muss sein) |
 |  7960 | TWikibug:Item1238 - plugins cleanup: added BuildContrib support/infrastructure |
@@ -84,7 +79,6 @@ Plugin settings are stored as preferences variables. To reference a plugin setti
 |  21 Nov 2005: | Initial TOPICCATTACH |
 |  30 Apr 2005: | Initial version |
 |  Dependencies: | %$DEPENDENCIES% |
-|  Other Dependencies: | Unix utilities =cp= and =mkdir= |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Plugin Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |

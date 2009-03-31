@@ -30,16 +30,7 @@ use strict;
 # =========================
 use vars qw(
         $web $topic $user $debug
-        $renderingWeb
-        $cpCmd $mkdirCmd
     );
-
-
-# =========================
-# Change these platform dependent settings if needed:
-$cpCmd    = "/bin/cp -p";
-$mkdirCmd = "/bin/mkdir";
-
 
 # =========================
 sub init
@@ -75,17 +66,10 @@ sub handleTopicCreate
 	#  saving the outer template itself should not invoke the create
         return "%TOPICCREATE{$theArgs}% ";
     }
-
-    # SMELL: shouldn't this expand all variables?  (eg, if you using something like Web.%NEWTOPIC%?)
-    # should i just expand the loaded topic or continue expanded the variables in these variables
-    # (i'm concerned about the implications of expanding the topic because this can be called recursively)
+    
+    # expand relevant Foswiki Macros
     $topicName = Foswiki::Func::expandCommonVariables( $topicName, $theTopic, $theWeb );
     $template = Foswiki::Func::expandCommonVariables( $template, $theTopic, $theWeb );
-    # expand relevant Foswiki Macros
-#    $topicName =~ s/%TOPIC%/$theTopic/go;
-#    $topicName =~ s/%WEB%/$theWeb/go;
-#    $template =~ s/%TOPIC%/$theTopic/go;
-#    $template =~ s/%WEB%/$theWeb/go;
 
     my $topicWeb = $theWeb;
     if( $topicName =~ /^([^\.]+)\.(.*)$/ ) {
@@ -109,17 +93,18 @@ sub handleTopicCreate
     unless( &Foswiki::Func::topicExists( $templateWeb, $template ) ) {
         return _errorMsg( $errVar, "Template <nop>$templateWeb.$template does not exist.");
     }
-
-    my $text = &Foswiki::Func::readTopicText( $templateWeb, $template, "", 1 );
+    
+    my ($meta, $text) = &Foswiki::Func::readTopic($templateWeb, $template);
 
     # Set topic parent
-    # SMELL: should use $meta object
-    $text = _setMetaData( $text, "TOPICPARENT", $theTopic );
-
-    # SMELL: replace 'gmtime' with foswiki preferences variable (i think there's one defined for this...)
-    my $localDate = &Foswiki::Func::formatTime( time(), "\$day \$month \$year", "gmtime" );
+    $meta->putKeyed( 'TOPICPARENT', { name => $theTopic } );
 
     # SMELL: replace with expandVariablesOnTopicCreation( $text );
+    # but then we seem to loose our parameters... Leaving it as it is for now
+    #$text = Foswiki::Func::expandVariablesOnTopicCreation( $text );
+
+    my $localDate = &Foswiki::Time::formatTime( time(), $Foswiki::cfg{DefaultDateFormat} );
+
     my $wikiUserName = &Foswiki::Func::userToWikiName( $user );
     $text =~ s/%NOP{.*?}%//gos;  # Remove filler: Use it to remove access control at time of
     $text =~ s/%NOP%//go;        # topic instantiation or to prevent search from hitting a template
@@ -148,29 +133,27 @@ sub handleTopicCreate
     }
     # END SMELL
 
-    # Copy Attachments over
-    my $pubDir = &Foswiki::Func::getPubDir();
-    if( -e     "$pubDir/$templateWeb/$template" ) {
-        # Right now if topic already exists, it silently fails above,
-        # need to fix this if something else happens
-        `$mkdirCmd $pubDir/$topicWeb/$topicName`;
-        `$cpCmd $pubDir/$templateWeb/$template/*  $pubDir/$topicWeb/$topicName/`;
+    # Copy all Attachments over
+    my @attachments = $meta->find( 'FILEATTACHMENT' );
+    foreach my $attach ( @attachments ){
+        my $fileName = $attach->{ 'path' } || $attach->{ 'attachment' } || $attach->{ 'name' };
+        # TODO: We could keep the comment, date of upload, etc
+        _copyAttachment( $templateWeb, $template, $fileName, $topicWeb, $topicName, $fileName );
     }
 
     # Recursively handle TOPICCREATE and TOPICATTCH
     $text =~ s/%TOPICCREATE{(.*)}%[\n\r]*/handleTopicCreate( $1, $theWeb, $topicName )/geo;
     $text =~ s/%TOPICATTCH{(.*)}%[\n\r]*/handleTopicAttach( $1, $theWeb, $topicName )/geo;
 
-    my $error = &Foswiki::Func::saveTopicText( $topicWeb, $topicName, $text, 1, "dont notify" );
-
-    if( $error ) {
-        return "%RED%Error saving $topicName%ENDCOLOR%$error";
-    }
+    #my $error = &Foswiki::Func::saveTopicText( $topicWeb, $topicName, $text, 1, "dont notify" );
+    &Foswiki::Func::saveTopic( $topicWeb, $topicName, $meta, $text, { minor => 1 } );
 
     return "";
 }
 
 # =========================
+# Untested and Undocumented, comes from this plugins TWiki days
+# Feel free to complete and test this if you need it
 sub handleTopicPatch
 {
     my( $theArgs, $theWeb, $theTopic, $theTopicText ) = @_;
@@ -201,6 +184,10 @@ sub handleTopicPatch
     }
 
     $text = _setMetaData( $text, "FIELD", $value, $formfield );
+    #$meta->putKeyed( 'FIELD', {
+    #        name => $formfield,
+    #        value => $value
+    #});
 
     my $error = Foswiki::Func::saveTopicText( $theWeb, $topicName, $text, "", "dont notify" );
 
@@ -250,63 +237,22 @@ sub handleTopicAttach
     # Copy attachment over
     if( _existAttachment( $fromTopicWeb, $fromTopic, $fromFile ) ) {
         _copyAttachment( $fromTopicWeb, $fromTopic, $fromFile, $web, $topic, $name );
+        # FIXME: use Foswiki::Func::readTopic( $web, $topic, $rev ) -> ( $meta, $text );
+        # then use the Meta object
         my $fromTopicText = &Foswiki::Func::readTopicText( $fromTopicWeb, $fromTopic, "", 1 );
         $fromTopicText =~ m/(%META:FILEATTACHMENT\{name=\"$fromFile.*?\}%)/;
-	my $attachInfo = $1;
-	$attachInfo =~ s/attr="h"/attr=""/;
-	$attachInfo =~ s/name=".*" /name="$name" /;
-	if ($attachComment) {
-	    $attachInfo =~ s/comment=".*" /comment="$attachComment" /;
-	}
+        my $attachInfo = $1;
+        $attachInfo =~ s/attr="h"/attr=""/;
+        $attachInfo =~ s/name=".*" /name="$name" /;
+        if ($attachComment) {
+            $attachInfo =~ s/comment=".*" /comment="$attachComment" /;
+        }
         push @$attachMetaDataRef, ($attachInfo);
     } else {
         &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::handleTopicAttach:: $fromFile does not exist in $fromTopicWeb/$fromTopic" ) if $debug;
         return _errorMsg( $errVar, "Attachment =$fromFile= does not exist in source topic $fromTopicWeb.$fromTopic" );
     }
     return "";
-}
-
-# =========================
-sub _setMetaData
-{
-    my( $theText, $theMeta, $theValue, $theName) = @_;
-
-    if( $theMeta =~ /^(FILEATTACHMENT|FIELD)$/ ) {
-        $theText =~ s/(%META:FIELD{name\=\"$theName\".*value=\")[^\"]*/$1$theValue/;
-        return $theText;
-    }
-
-    if( $theText =~ s/(\%META:$theMeta.*?name=\")[^\"]*/$1$theValue/o ) {
-        # replaced existing meta data
-        return $theText;
-    }
-    if( $theMeta eq "TOPICPARENT" ) {
-        $theText = "\%META:TOPICPARENT\{name=\"$theValue\"\}\%\n" . $theText;
-
-    } else {
-        $theText =~ s/\n?\r?$/\n\%META:$theMeta\{name=\"$theValue\"\}\%\n/o;
-    }
-
-    return $theText;
-}
-
-# =========================
-sub _getMetaData
-{
-    my ( $theText, $theMeta, $theName ) = @_;
-    my $value = "";
-
-    if ( $theMeta =~ m/^(FILEATTACHMENT|FIELD)$/ ) {
-        return "" unless ( $theText =~ m/%META:$theMeta\{name\=\"$theName\".*value=\"([^\"]*)/ );
-        $value = $1 || "";
-        return $value;
-    } elsif ( $theMeta ) {
-        return "" unless ( $theText =~ m/%META:$theMeta\{name\=\"([^\"]*)/ );
-        $value = $1 || "";
-        return $value;
-    }
-
-    return $value;
 }
 
 # =========================
@@ -326,28 +272,22 @@ sub _getAttachmentList
 sub _existAttachment
 {
     my ( $theWeb, $theTopic, $theFile ) = @_;
-
-    my $pubDir = &Foswiki::Func::getPubDir();
-
-        &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::checking $pubDir/$theWeb/$theTopic/$theFile");
-
-    return( -e "$pubDir/$theWeb/$theTopic/$theFile" );
+    
+    return Foswiki::Func::attachmentExists( $theWeb, $theTopic, $theFile );
 }
 
 # =========================
 sub _copyAttachment
 {
     my ( $fromWeb, $fromTopic, $fromFile, $toWeb, $toTopic, $toFile ) = @_;
-
-    my $pubDir = &Foswiki::Func::getPubDir();
-    unless( -e "$pubDir/$toWeb/$toTopic") {
-        `$mkdirCmd $pubDir/$toWeb/$toTopic`;
-    }
-    #  IMPLICIT ASSUMPTION of RCS backend storage, should really use storage api
-    `$cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile   $pubDir/$toWeb/$toTopic/$toFile`;
-    `$cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile,v $pubDir/$toWeb/$toTopic/$toFile,v`;
-    &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::copyAttachment from $fromWeb/$fromTopic/$fromFile to $toWeb/$toTopic/$toFile    -- $cpCmd $pubDir/$fromWeb/$fromTopic/$fromFile,v $pubDir/$toWeb/$toTopic/$toFile,v") if $debug;
-
+    
+    my $pubDir = $Foswiki::cfg{PubDir};
+    
+    my $filePath = "$pubDir/$fromWeb/$fromTopic/$fromFile";
+   
+    Foswiki::Func::saveAttachment( $toWeb, $toTopic, $toFile, { file => $filePath } );
+    
+    &Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::copyAttachment from $fromWeb/$fromTopic/$fromFile to $toWeb/$toTopic/$toFile") if $debug;
 }
 
 1;
