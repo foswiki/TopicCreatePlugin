@@ -19,71 +19,82 @@
 
 package Foswiki::Plugins::TopicCreatePlugin;
 
-
 # =========================
 use vars qw(
-        $web $topic $user $installWeb $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
-    );
+  $web $topic $user $installWeb $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
+);
 
-our $VERSION = '$Rev$';
-our $RELEASE = '1.0';
-our $SHORTDESCRIPTION = 'Displays the hostname of the server serving Foswiki.';
+our $VERSION           = '$Rev$';
+our $RELEASE           = '1.1';
+our $SHORTDESCRIPTION  = 'Displays the hostname of the server serving Foswiki.';
 our $NO_PREFS_IN_TOPIC = 0;
-our $pluginName = 'TopicCreatePlugin';
+our $pluginName        = 'TopicCreatePlugin';
 
 our $doInit = 0;
 
 # =========================
-sub initPlugin
-{
+sub initPlugin {
     ( $topic, $web, $user, $installWeb ) = @_;
 
     # Get plugin debug flag
-    $debug = Foswiki::Func::getPluginPreferencesFlag( "DEBUG" );
+    $debug = Foswiki::Func::getPluginPreferencesFlag("DEBUG");
 
     # Plugin correctly initialized
-    Foswiki::Func::writeDebug( "- Foswiki::Plugins::TopicCreatePlugin::initPlugin( $web.$topic ) is OK" ) if $debug;
+    Foswiki::Func::writeDebug(
+        "- Foswiki::Plugins::TopicCreatePlugin::initPlugin( $web.$topic ) is OK"
+    ) if $debug;
     $doInit = 1;
     return 1;
 }
 
 # =========================
-sub beforeSaveHandler
-{
+sub beforeSaveHandler {
 ### my ( $text, $topic, $web ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
 
-    Foswiki::Func::writeDebug( "- TopicCreatePlugin::beforeSaveHandler( $_[2].$_[1] )" ) if $debug;
+    Foswiki::Func::writeDebug(
+        "- TopicCreatePlugin::beforeSaveHandler( $_[2].$_[1] )")
+      if $debug;
 
-    unless( $_[0] =~ /%TOPIC(CREATE|ATTACH)\{.*?\}%/ ) {
+    unless ( $_[0] =~ /%TOPIC(CREATE|ATTACH)\{.*?\}%/ ) {
+
         # nothing to do
         return 1;
     }
 
     require Foswiki::Plugins::TopicCreatePlugin::Func;
 
-    if( $doInit ) {
+    if ($doInit) {
         $doInit = 0;
-        Foswiki::Plugins::TopicCreatePlugin::Func::init( $web, $topic, $user, $debug );
+        Foswiki::Plugins::TopicCreatePlugin::Func::init( $web, $topic, $user,
+            $debug );
     }
 
-    $_[0] =~ s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1], $_[0] )/geo;
+    $_[0] =~
+s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1], $_[0] )/geo;
 
-    # To be completed, tested and documented
-    # $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/geo;
+# To be completed, tested and documented
+# $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/geo;
 
-    if ($_[0] =~ /%TOPICATTACH/){
+    if ( $_[0] =~ /%TOPICATTACH/ ) {
         my @attachMetaData = ();
-        $_[0] =~ s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, \@attachMetaData)/geo;
+        $_[0] =~
+s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, \@attachMetaData)/geo;
         my $fileName = "";
-        foreach my $fileMeta ( @attachMetaData ) {
+        foreach my $fileMeta (@attachMetaData) {
             $fileMeta =~ m/META:FILEATTACHMENT\{name\=\"(.*?)\"/;
             $fileName = $1;
-            unless ($_[0] =~ m/META:FILEATTACHMENT\{name\=\"$fileName/ ) {
-                &Foswiki::Func::writeDebug( "handleTopicAttach:: in unless $fileMeta") if $debug;
+            unless ( $_[0] =~ m/META:FILEATTACHMENT\{name\=\"$fileName/ ) {
+                &Foswiki::Func::writeDebug(
+                    "handleTopicAttach:: in unless $fileMeta")
+                  if $debug;
                 $_[0] .= "\n$fileMeta";
-            } else {
-                &Foswiki::Func::writeDebug( "handleTopicAttach:: in else $fileMeta") if $debug;
-                $_[0] =~ s/(%META:FILEATTACHMENT\{name=\"$fileName.*?\}%)/$fileMeta/;
+            }
+            else {
+                &Foswiki::Func::writeDebug(
+                    "handleTopicAttach:: in else $fileMeta")
+                  if $debug;
+                $_[0] =~
+                  s/(%META:FILEATTACHMENT\{name=\"$fileName.*?\}%)/$fileMeta/;
             }
         }
     }
