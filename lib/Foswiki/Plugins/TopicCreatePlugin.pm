@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 Andrew Jones, andrewjones86@gmail.com
+# Copyright (C) 2009 - 2010 Andrew Jones, http://andrew-jones.com
 # Copyright (C) 2005-2006 Peter Thoeny, peter@thoeny.org
 #
 # For licensing info read LICENSE file in the Foswiki root.
@@ -24,9 +24,10 @@ use vars qw(
   $web $topic $user $installWeb $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
 );
 
-our $VERSION           = '$Rev$';
-our $RELEASE           = '1.1';
-our $SHORTDESCRIPTION  = 'Displays the hostname of the server serving Foswiki.';
+our $VERSION = '$Rev$';
+our $RELEASE = '1.2';
+our $SHORTDESCRIPTION =
+  'Automatically create a set of topics and attachments at topic save time';
 our $NO_PREFS_IN_TOPIC = 0;
 our $pluginName        = 'TopicCreatePlugin';
 

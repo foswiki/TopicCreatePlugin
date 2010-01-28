@@ -63,6 +63,8 @@ sub handleTopicCreate {
          Foswiki::Func::extractNameValuePair( $theArgs, "topic" )
       || Foswiki::Func::extractNameValuePair( $theArgs, "name" )
       || return _errorMsg( $errVar, "Parameter =topic= is missing or empty." );
+    my $parent = Foswiki::Func::extractNameValuePair( $theArgs, "parent" )
+      || $theTopic;
     my $disable = Foswiki::Func::extractNameValuePair( $theArgs, "disable" )
       || "";
 
@@ -106,7 +108,7 @@ sub handleTopicCreate {
     my ( $meta, $text ) = &Foswiki::Func::readTopic( $templateWeb, $template );
 
     # Set topic parent
-    $meta->putKeyed( 'TOPICPARENT', { name => $theTopic } );
+    $meta->putKeyed( 'TOPICPARENT', { name => $parent } );
 
     # SMELL: replace with expandVariablesOnTopicCreation( $text );
     # but then we seem to loose our parameters... Leaving it as it is for now
