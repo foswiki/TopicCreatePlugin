@@ -77,6 +77,8 @@ sub handleTopicCreate {
     # expand relevant Foswiki Macros
     $topicName =
       Foswiki::Func::expandCommonVariables( $topicName, $theTopic, $theWeb );
+    $parent =
+      Foswiki::Func::expandCommonVariables( $parent, $theTopic, $theWeb );
     $template =
       Foswiki::Func::expandCommonVariables( $template, $theTopic, $theWeb );
 
@@ -108,7 +110,7 @@ sub handleTopicCreate {
     my ( $meta, $text ) = &Foswiki::Func::readTopic( $templateWeb, $template );
 
     # Set topic parent
-    $meta->putKeyed( 'TOPICPARENT', { name => $parent } );
+    $meta->putAll( 'TOPICPARENT', { name => $parent } );
 
     # SMELL: replace with expandVariablesOnTopicCreation( $text );
     # but then we seem to loose our parameters... Leaving it as it is for now

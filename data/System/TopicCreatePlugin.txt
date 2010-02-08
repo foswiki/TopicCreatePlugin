@@ -67,6 +67,7 @@ Plugin settings are stored as preferences variables. To reference a plugin setti
 |  Plugin Release: | %$RELEASE% |
 |  Plugin Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  08 Feb 2010: | v1.3: Foswikitask:Item8480 - Fix for setting the parent; Fix for using Macros as the parent in =%<nop>TOPICCREATE%= -- Foswiki:Main.AndrewJones |
 |  28 Jan 2010: | v1.2: Foswikitask:Item8438 - =%<nop>TOPICCREATE%= now allows you to define a parent for the new topic -- Foswiki:Main.AndrewJones |
 |  29 Sep 2009: | v1.1: Foswikitask:Item4757 - Fixed warning when using =%<nop>TOPICATTACH%= -- Foswiki:Main.AndrewJones |
 |  31 Mar 2009: | v1.0: Foswikitask:Item1262 - Ported to Foswiki and released as 1.0; Removed dependency on Unix utilities =cp= and =mkdir=, should now work on any OS that Foswiki does; Improved code to make it cleaner and use more of the official API; Removed depreciated API calls -- Foswiki:Main.AndrewJones |

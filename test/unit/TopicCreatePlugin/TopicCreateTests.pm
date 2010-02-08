@@ -70,7 +70,7 @@ HERE
         "Parent of new child topic is incorrect" );
 }
 
-# test the use of %TOPICCREATE{ parent="WebHome" }%
+# test the use of %TOPICCREATE{ parent="FooBar" }%
 sub test_parent {
     my $this = shift;
 
@@ -80,7 +80,35 @@ sub test_parent {
 %META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
 %META:TOPICPARENT{name="WebHome"}%
 
-%TOPICCREATE{template="$simpleTemplate" topic="$testTopic" parent="WebHome"}%
+%TOPICCREATE{template="$simpleTemplate" topic="$testTopic" parent="FooBar"}%
+
+HERE
+
+    Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
+        $this->{test_topic}, $this->{test_web} );
+
+    # child topic should now exist
+    $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
+        "$testTopic was not created" );
+
+    # parent of newly created topic should be WebHome
+    my ( $meta, undef ) =
+      Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
+    $this->assert_equals( "FooBar", $meta->getParent(),
+        "Parent of new child topic is incorrect" );
+}
+
+# test the use of %TOPICCREATE{ parent="%HOMETOPIC%" }%
+sub test_parent_as_macro {
+    my $this = shift;
+
+    my $testTopic = "ParentTest2";
+
+    my $sampleText = <<"HERE";
+%META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
+%META:TOPICPARENT{name="WebHome"}%
+
+%TOPICCREATE{template="$simpleTemplate" topic="$testTopic" parent="%HOMETOPIC%"}%
 
 HERE
 
@@ -95,7 +123,8 @@ HERE
     my ( $meta, undef ) =
       Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
     $this->assert_equals( "WebHome", $meta->getParent(),
-        "Parent of new child topic is incorrect" );
+"Parent of new child topic is incorrect. Should be the same as the current topic."
+    );
 }
 
 # test the use of %TOPICCREATE{ disable="ThisTopic" }%
