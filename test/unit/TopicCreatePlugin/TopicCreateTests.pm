@@ -52,6 +52,8 @@ sub test_simple_create {
 
 HERE
 
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
     Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
         $this->{test_topic}, $this->{test_web} );
 
@@ -85,6 +87,8 @@ sub test_parent {
 
 HERE
 
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
     Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
         $this->{test_topic}, $this->{test_web} );
 
@@ -113,6 +117,8 @@ sub test_parent_as_macro {
 
 HERE
 
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
     Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
         $this->{test_topic}, $this->{test_web} );
 
@@ -139,10 +145,12 @@ sub test_disable {
 %META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
 %META:TOPICPARENT{name="WebHome"}%
 
-%TOPICCREATE{template="$simpleTemplate" topic="$testTopic" disable="WebHome"}%
+%TOPICCREATE{template="$simpleTemplate" topic="$testTopic" disable="$this->{test_topic}"}%
 
 HERE
 
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
     Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
         $this->{test_topic}, $this->{test_web} );
 
@@ -174,10 +182,56 @@ HERE
 %META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
 %META:TOPICPARENT{name="WebHome"}%
 
+%TOPICCREATE{template="$template" topic="$testTopic" param1="Bergkamp" param2="Henry"}%
+
+HERE
+
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
+    Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
+        $this->{test_topic}, $this->{test_web} );
+
+    # child topic should now exist
+    $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
+        "$testTopic was not created" );
+
+ # parent of newly created topic should be same as the topic it was created from
+    my ( undef, $text ) =
+      Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
+
+    $this->assert_matches( "Bergkamp", $text,
+        "param1 does not appear in the new topic" );
+    $this->assert_matches( "Henry", $text,
+        "param2 does not appear in the new topic" );
+}
+
+# test creating a topic with parameters
+sub test_legacy_parameters {
+    my $this = shift;
+
+    my $template  = "LegacyParamsTemplateTopic";
+    my $testTopic = "LegacyParamsTest";
+
+    # create a simple template topic
+    Foswiki::Func::saveTopic( $this->{test_web}, $template, undef, <<'HERE');
+---++ Template Topic
+A template topic with parameters
+
+   * Param1: %URLPARAM{"param1"}%
+   * Param2: %URLPARAM{"param2"}%
+
+HERE
+
+    my $sampleText = <<"HERE";
+%META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
+%META:TOPICPARENT{name="WebHome"}%
+
 %TOPICCREATE{template="$template" topic="$testTopic" parameters="param1=Bergkamp&param2=Henry"}%
 
 HERE
 
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
     Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
         $this->{test_topic}, $this->{test_web} );
 

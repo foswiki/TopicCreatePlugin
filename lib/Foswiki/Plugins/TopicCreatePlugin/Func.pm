@@ -54,24 +54,41 @@ sub handleTopicCreate {
     }
     my $errVar = "%<nop>TOPICCREATE{$theArgs}%";
 
-    my $template = Foswiki::Func::extractNameValuePair( $theArgs, "template" )
-      || return _errorMsg( $errVar,
-        "Parameter =templatete= is missing or empty." );
-    my $parameters =
-      Foswiki::Func::extractNameValuePair( $theArgs, "parameters" ) || "";
-    my $topicName =
-         Foswiki::Func::extractNameValuePair( $theArgs, "topic" )
-      || Foswiki::Func::extractNameValuePair( $theArgs, "name" )
-      || return _errorMsg( $errVar, "Parameter =topic= is missing or empty." );
-    my $parent = Foswiki::Func::extractNameValuePair( $theArgs, "parent" )
-      || $theTopic;
-    my $disable = Foswiki::Func::extractNameValuePair( $theArgs, "disable" )
-      || "";
+    my %parameters = Foswiki::Func::extractParameters($theArgs);
 
-    if ( $disable eq $topic ) {
+    if ( $parameters{disable} && $parameters{disable} eq $topic ) {
 
         #  saving the outer template itself should not invoke the create
         return "%TOPICCREATE{$theArgs}% ";
+    }
+
+    my $template = $parameters{template};
+    unless ($template) {
+        return _errorMsg( $errVar,
+            "Parameter =template= is missing or empty." );
+    }
+
+    my $topicName = $parameters{topic} || $parameters{name};
+    unless ($topicName) {
+        return _errorMsg( $errVar, "Parameter =topic= is missing or empty." );
+    }
+    my $parent = $parameters{parent} || $theTopic;
+
+    # support legacy parameters, like
+    # parameters="param1=Bergkamp&param2=Henry"
+    if ( $parameters{parameters} ) {
+
+# need to parse into a format which extractParameters expects (i.e add double quotes)
+        $parameters{parameters} =~ s/=/="/g;
+        $parameters{parameters} =~ s/&/" /g;
+        $parameters{parameters} .= '"';
+
+        %parameters = (
+            %parameters,
+            Foswiki::Func::extractParameters( $parameters{parameters} )
+        );
+
+        delete( $parameters{parameters} );
     }
 
     # expand relevant Foswiki Macros
@@ -140,14 +157,13 @@ sub handleTopicCreate {
     my $ptemp = join ", ", @param;
     &Foswiki::Func::writeDebug(
             "- Foswiki::Plugins::TopicCreatePlugin::topicCreate "
-          . "$topicName $ptemp $parameters" )
+          . "$topicName $ptemp" )
       if $debug;
 
     my $passedPar = "";
     foreach my $par (@param) {
-        next unless ( $parameters =~ m/$par=(.*?)($|&)/ );
-        $passedPar = $1 || "";
-        $text =~ s/%URLPARAM\{\"?$par\"?\}%/$passedPar/g;
+        next unless ( $parameters{$par} );
+        $text =~ s/%URLPARAM\{\"?$par\"?\}%/$parameters{$par}/g;
     }
 
     # END SMELL
