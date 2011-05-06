@@ -25,7 +25,7 @@ use vars qw(
 );
 
 $VERSION = '$Rev$';
-$RELEASE = '1.4';
+$RELEASE = '1.5';
 $SHORTDESCRIPTION =
   'Automatically create a set of topics and attachments at topic save time';
 $NO_PREFS_IN_TOPIC = 1;
