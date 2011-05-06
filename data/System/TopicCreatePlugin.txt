@@ -7,7 +7,7 @@ This Plugin allows you to automatically create topics or attach files at topic s
 
 ---++ <nop>TOPICCREATE - Automatically Create a Set of Foswiki Topics
 
-   * The =%<nop>TOPICCREATE{}%= Macro is useful for creating topics based on templates
+   * The =%<nop>TOPICCREATE{}%= macro is useful for creating topics based on templates
    * Example scenario: You have a notebook application where users can create new notebooks based on a notebook template topic. Each time a user creates a new notebook you would like to create a set of child topics, each based on a separate template.
    * Syntax: =%<nop>TOPICCREATE{ &lt;attributes&gt; }%=
    * Attributes recognized
@@ -18,7 +18,7 @@ This Plugin allows you to automatically create topics or attach files at topic s
      | =disable=""= | Name of the template topic containing this use of TOPICCREATE | Any valid topic name (<nop>WikiWord) | _recommended_ |
      | =&lt;anything else>=""= | Any other parameters are passed to a child topic to initialize any urlparams.| Any string | None |
    * The action to create the Foswiki topic will not occur until one hits the =Save Changes= button in preview
-   * The =%<nop>TOPICCREATE{}%= variable will be removed upon saving of the topic
+   * The =%<nop>TOPICCREATE{}%= macro will be removed upon saving of the topic
    * Any attachments that are in the =template= will also be copied to the new topic
    * =%<nop>TOPICCREATE%= is recursive
    * Write =%<nop>TOPICCREATE{ template="<nop>MyTemplate" topic="<nop>%<nop>TOPIC%MyNewTopicName" !MyParameterName="MyParameterValue" Hello="Goodbye" }%= to create a foswiki topic based on another topic =<nop>MyTemplate= with the name =<nop>%<nop>TOPIC%MyNewTopicName=. Any =%<nop>URLPARAM{}%=  with the name =MyParameterName= and =Hello= present in =MyTemplate= will be replaced with =MyParameterValue= and =Goodbye=.
@@ -48,13 +48,14 @@ This Plugin allows you to automatically create topics or attach files at topic s
 
 ---++ Plugin Settings
 
-Plugin settings are stored as preferences variables. To reference a plugin setting write ==%<nop>&lt;plugin&gt;_&lt;setting&gt;%==, i.e. ==%<nop>TOPICCREATEPLUGIN_SHORTDESCRIPTION%==
+Plugin settings are stored as preferences values. You can override the defaults for these preferences in %LOCALSITEPREFS%, the <nolink>%WEBPREFSTOPIC%</nolink> topic of the current web, or in individual topics that use the plugin.  *Changing them here will have no effect!* This allows you to upgrade the plugin without having to worry about losing your settings.
 
-   * One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
-      * Set SHORTDESCRIPTION = Automatically create a set of topics and attachments at topic save time
+<!--
+   * Set SHORTDESCRIPTION = Automatically create a set of topics and attachments at topic save time
+-->
 
    * Debug plugin: (See output in the Foswiki debug log)
-      * Set DEBUG = 0
+      * Set TOPICCREATEPLUGIN_DEBUG = 0
 
 ---++ Installation Instructions
 
@@ -69,6 +70,7 @@ Plugin settings are stored as preferences variables. To reference a plugin setti
 |  Plugin Release: | %$RELEASE% |
 |  Plugin Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  06 May 2011: | v1.5: No longer load preferences from plugin topic; doc updates -- Foswiki:Main.AndrewJones |
 |  08 Feb 2010: | v1.4: Foswikitask:Item8281 - Changed the way extra parameters are passed using =%<nop>TOPICCREATE%=, so that special characters can now be passed -- Foswiki:Main.AndrewJones |
 |  08 Feb 2010: | v1.3: Foswikitask:Item8480 - Fix for setting the parent; Fix for using Macros as the parent in =%<nop>TOPICCREATE%= -- Foswiki:Main.AndrewJones |
 |  28 Jan 2010: | v1.2: Foswikitask:Item8438 - =%<nop>TOPICCREATE%= now allows you to define a parent for the new topic -- Foswiki:Main.AndrewJones |

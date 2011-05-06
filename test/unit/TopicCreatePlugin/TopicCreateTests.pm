@@ -18,6 +18,13 @@ sub new {
     return $self;
 }
 
+sub loadExtraConfig {
+    my $this = shift;
+
+    $Foswiki::cfg{Plugins}{TopicCreatePlugin}{Enabled} = 1;
+    $this->SUPER::loadExtraConfig();
+}
+
 # Set up the test fixture
 sub set_up {
     my $this = shift;
@@ -130,6 +137,37 @@ HERE
     my ( $meta, undef ) =
       Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
     $this->assert_equals( "WebHome", $meta->getParent(),
+"Parent of new child topic is incorrect. Should be the same as the current topic."
+    );
+}
+
+# test the use of %TOPICCREATE{ parent="%TOPIC%" }%
+sub test_parent_as_topic {
+    my $this = shift;
+
+    my $testTopic = "ParentTest2";
+
+    my $sampleText = <<"HERE";
+%META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
+%META:TOPICPARENT{name="WebHome"}%
+
+%TOPICCREATE{template="$simpleTemplate" topic="$testTopic" parent="%TOPIC%"}%
+
+HERE
+
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
+    Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
+        $this->{test_topic}, $this->{test_web} );
+
+    # child topic should now exist
+    $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
+        "$testTopic was not created" );
+
+    # parent of newly created topic should be WebHome
+    my ( $meta, undef ) =
+      Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
+    $this->assert_equals( $this->{test_topic}, $meta->getParent(),
 "Parent of new child topic is incorrect. Should be the same as the current topic."
     );
 }

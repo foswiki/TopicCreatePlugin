@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 - 2010 Andrew Jones, http://andrew-jones.com
+# Copyright (C) 2009 - 2011 Andrew Jones, http://andrew-jones.com
 # Copyright (C) 2005-2006 Peter Thoeny, peter@thoeny.org
 #
 # For licensing info read LICENSE file in the Foswiki root.
@@ -24,14 +24,14 @@ use vars qw(
   $web $topic $user $installWeb $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
 );
 
-our $VERSION = '$Rev$';
-our $RELEASE = '1.4';
-our $SHORTDESCRIPTION =
+$VERSION = '$Rev$';
+$RELEASE = '1.4';
+$SHORTDESCRIPTION =
   'Automatically create a set of topics and attachments at topic save time';
-our $NO_PREFS_IN_TOPIC = 0;
-our $pluginName        = 'TopicCreatePlugin';
+$NO_PREFS_IN_TOPIC = 1;
+$pluginName        = 'TopicCreatePlugin';
 
-our $doInit = 0;
+$doInit = 0;
 
 # =========================
 sub initPlugin {
@@ -71,15 +71,15 @@ sub beforeSaveHandler {
     }
 
     $_[0] =~
-s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1], $_[0] )/geo;
+s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1], $_[0] )/ge;
 
 # To be completed, tested and documented
-# $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/geo;
+# $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/ge;
 
     if ( $_[0] =~ /%TOPICATTACH/ ) {
         my @attachMetaData = ();
         $_[0] =~
-s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, \@attachMetaData)/geo;
+s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, \@attachMetaData)/ge;
         my $fileName = "";
         foreach my $fileMeta (@attachMetaData) {
             $fileMeta =~ m/META:FILEATTACHMENT\{name\=\"(.*?)\"/;
