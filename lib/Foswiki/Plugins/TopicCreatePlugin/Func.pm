@@ -62,17 +62,14 @@ sub handleTopicCreate {
         return "%TOPICCREATE{$theArgs}% ";
     }
 
-    my $template = $parameters{template};
-    unless ($template) {
+    unless ( exists $parameters{template} ) {
         return _errorMsg( $errVar,
             "Parameter =template= is missing or empty." );
     }
 
-    my $topicName = $parameters{topic} || $parameters{name};
-    unless ($topicName) {
+    unless ( exists $parameters{topic} || exists $parameters{name} ) {
         return _errorMsg( $errVar, "Parameter =topic= is missing or empty." );
     }
-    my $parent = $parameters{parent} || $theTopic;
 
     # support legacy parameters, like
     # parameters="param1=Bergkamp&param2=Henry"
@@ -91,13 +88,16 @@ sub handleTopicCreate {
         delete( $parameters{parameters} );
     }
 
-    # expand relevant Foswiki Macros
-    $topicName =
-      Foswiki::Func::expandCommonVariables( $topicName, $theTopic, $theWeb );
-    $parent =
-      Foswiki::Func::expandCommonVariables( $parent, $theTopic, $theWeb );
-    $template =
-      Foswiki::Func::expandCommonVariables( $template, $theTopic, $theWeb );
+    # expand Foswiki Macros
+    for my $key ( keys %parameters ) {
+        $parameters{$key} =
+          Foswiki::Func::expandCommonVariables( $parameters{$key}, $theTopic,
+            $theWeb );
+    }
+
+    my $template  = $parameters{template};
+    my $topicName = $parameters{topic} || $parameters{name};
+    my $parent    = $parameters{parent} || $theTopic;
 
     my $topicWeb = $theWeb;
     if ( $topicName =~ /^([^\.]+)\.(.*)$/ ) {

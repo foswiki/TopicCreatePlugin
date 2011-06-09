@@ -65,11 +65,12 @@ Plugin settings are stored as preferences values. You can override the defaults 
 
 |  Plugin Author(s): | Foswiki:Main.AndrewJones |
 |  Previous Author(s): | TWiki:Main.StanleyKnutson, TWiki:Main.PeterThoeny, Foswiki:Main.PaulineCheung |
-|  Copyright: | &copy; 2009 - 2010, Andrew Jones, &copy; 2005 - 2006, Peter Thoeny |
+|  Copyright: | &copy; 2009 - 2011, Andrew Jones, &copy; 2005 - 2006, Peter Thoeny |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Plugin Release: | %$RELEASE% |
 |  Plugin Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  09 Jun 2011: | v1.6: Foswikitask:Item10863 - Expand macros in parameters -- Foswiki:Main.AndrewJones |
 |  06 May 2011: | v1.5: No longer load preferences from plugin topic; doc updates -- Foswiki:Main.AndrewJones |
 |  08 Feb 2010: | v1.4: Foswikitask:Item8281 - Changed the way extra parameters are passed using =%<nop>TOPICCREATE%=, so that special characters can now be passed -- Foswiki:Main.AndrewJones |
 |  08 Feb 2010: | v1.3: Foswikitask:Item8480 - Fix for setting the parent; Fix for using Macros as the parent in =%<nop>TOPICCREATE%= -- Foswiki:Main.AndrewJones |

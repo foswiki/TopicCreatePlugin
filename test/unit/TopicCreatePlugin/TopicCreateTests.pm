@@ -237,10 +237,54 @@ HERE
     my ( undef, $text ) =
       Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
 
-    $this->assert_matches( "Bergkamp", $text,
-        "param1 does not appear in the new topic" );
-    $this->assert_matches( "Henry", $text,
-        "param2 does not appear in the new topic" );
+    $this->assert_matches( "Param1: Bergkamp",
+        $text, "param1 does not appear in the new topic" );
+    $this->assert_matches( "Param2: Henry",
+        $text, "param2 does not appear in the new topic" );
+}
+
+# test creating a topic with a macro as a parameter
+sub test_macro_as_parameter {
+    my $this = shift;
+
+    my $template  = "ParamsTemplateTopic";
+    my $testTopic = "ParamsAsMacroTest";
+
+    # create a simple template topic
+    Foswiki::Func::saveTopic( $this->{test_web}, $template, undef, <<'HERE');
+---++ Template Topic
+A template topic with parameters
+
+   * Param1: %URLPARAM{"param1"}%
+   * Param2: %URLPARAM{"param2"}%
+
+HERE
+
+    my $sampleText = <<"HERE";
+%META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
+%META:TOPICPARENT{name="WebHome"}%
+
+%TOPICCREATE{template="$template" topic="$testTopic" param1="%TOPIC%" param2="Henry"}%
+
+HERE
+
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
+    Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
+        $this->{test_topic}, $this->{test_web} );
+
+    # child topic should now exist
+    $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
+        "$testTopic was not created" );
+
+ # parent of newly created topic should be same as the topic it was created from
+    my ( undef, $text ) =
+      Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
+
+    $this->assert_matches( "Param1: $this->{test_topic}",
+        $text, "param1 does not appear in the new topic" );
+    $this->assert_matches( "Param2: Henry",
+        $text, "param2 does not appear in the new topic" );
 }
 
 # test creating a topic with parameters
