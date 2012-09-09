@@ -5,6 +5,6 @@ our @ISA = qw( Unit::TestSuite );
 
 sub name { 'TopicCreatePluginSuite' }
 
-sub include_tests { qw(TopicCreateTests) }
+sub include_tests { qw(TopicCreateTests TopicAttachTests) }
 
 1;

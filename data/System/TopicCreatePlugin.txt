@@ -16,12 +16,12 @@ This Plugin allows you to automatically create topics or attach files at topic s
      | =topic=""= | Name of new Foswiki topic to create | Any valid topic name | (required) |
      | =parent=""= | Parent of the newly created topic | Any existing topic | Current topic |
      | =disable=""= | Name of the template topic containing this use of TOPICCREATE | Any valid topic name (<nop>WikiWord) | _recommended_ |
-     | =&lt;anything else>=""= | Any other parameters are passed to a child topic to initialize any urlparams.| Any string | None |
+     | =&lt;anything else>=""= | Any other parameters are passed to a child topic to initialize any urlparams or set any form field values. | Any string | None |
    * The action to create the Foswiki topic will not occur until one hits the =Save Changes= button in preview
    * The =%<nop>TOPICCREATE{}%= macro will be removed upon saving of the topic
    * Any attachments that are in the =template= will also be copied to the new topic
    * =%<nop>TOPICCREATE%= is recursive
-   * Write =%<nop>TOPICCREATE{ template="<nop>MyTemplate" topic="<nop>%<nop>TOPIC%MyNewTopicName" !MyParameterName="MyParameterValue" Hello="Goodbye" }%= to create a foswiki topic based on another topic =<nop>MyTemplate= with the name =<nop>%<nop>TOPIC%MyNewTopicName=. Any =%<nop>URLPARAM{}%=  with the name =MyParameterName= and =Hello= present in =MyTemplate= will be replaced with =MyParameterValue= and =Goodbye=.
+   * Write =%<nop>TOPICCREATE{ template="<nop>MyTemplate" topic="<nop>%<nop>TOPIC%MyNewTopicName" !MyParameterName="MyParameterValue" Hello="Goodbye" }%= to create a foswiki topic based on another topic =<nop>MyTemplate= with the name =<nop>%<nop>TOPIC%MyNewTopicName=. Any =%<nop>URLPARAM{}%= or any [[%SYSTEMWEB%.DataForms][form field]] values with the name =MyParameterName= and =Hello= present in =MyTemplate= will be replaced with =MyParameterValue= and =Goodbye=.
    * To prevent the action from happening in your template topic you should either include the =disable= argument, or escape it: =%<nop>TOPICCRE%<nop>NOP%ATE{...}%=. The =%<nop>NOP%= gets removed when a topic gets instantiated based on a template.
 
 ---++ <nop>TOPICATTACH - Automatically Copy Attachments to a Topic 
@@ -32,8 +32,9 @@ This Plugin allows you to automatically create topics or attach files at topic s
      | *Attribute* | *Meaning* | *Valid input* | *Default* |
      | =fromtopic=""= | Topic (or Web.Topic) that contains the attachment  | Any valid Foswiki topic | (required) |
      | =fromfile=""= | The attachment to copy from | Any attached file from =fromtopic= | (required) |
-     | =disable=""= | Name of the template topic containing this use of TOPICATTACH | Any valid topic name | (required) |
+     | =disable=""= | Name of the template topic containing this use of TOPICATTACH | Any valid topic name | _recommended_ |
      | =comment=""= | Comment to appear for the attachment within this topic, replacing the comment that was in the =fromtopic= | a one line string | {omit parameter if no change desired} |
+     | =name=""= | Name to appear for the attachment within this topic, replacing the name that was in the =fromtopic= | a one line string | {omit parameter if no change desired} |
    * Write =%<nop>TOPICATTACH{ fromtopic="<nop>SourceTopic" fromfile="Sample.jpg" name="Snoopy.jpg" disable="..."}%= to attach =Sample.jpg= from topic =<nop>SourceTopic= as =Snoopy.jpg=
    * The parameter value comment is used to change the comment (description) that shows for the topic in the table of attachments
    * The "hidden" attribute of the topic is removed: the attachment can be hidden in the =fromtopic= if desired
@@ -41,8 +42,9 @@ This Plugin allows you to automatically create topics or attach files at topic s
    * To prevent the action from happening in your template topic you *must* provide the =disable= parameter with the topic name containing the =%<nop>TOPICATTACH%=.
 
 ---++ Notes
+   * Since version 1.7 of this plugin, you can pass a value to a [[%SYSTEMWEB%.DataForms][form field]] on the topic by adding a parameter with the same name as the field.
    * Before version 1.4 of this plugin, the extra =TOPICCREATE= parameters were passed in using a special =parameters= attribute, as follows: <verbatim>
-   %TOPICCREATE{ template="MyTemplate" topic="%TOPIC%MyNewTopicName" parameters="MyParameterName=MyParameterValue&Hello=Goodbye" }%</verbatim> This is now *depreciated*. Instead, extra parameters are automatically passed through, as documented above.
+   %TOPICCREATE{ template="MyTemplate" topic="%TOPIC%MyNewTopicName" parameters="MyParameterName=MyParameterValue&Hello=Goodbye" }%</verbatim> This is now *deprecated*. Instead, extra parameters are automatically passed through, as documented above.
    * The =TOPICATTACH= must be in the 'top level' topic being saved by a =TOPICCREATE=.  It can not be in a recursive/subordinate topic invoked by the =TOPICCREATE=
    * There is a half-baked =%<nop>TOPICPATCH%= implementation which requires completing, testing and documenting. You are more than welcome to implement this if you would find it useful.
 
@@ -65,18 +67,19 @@ Plugin settings are stored as preferences values. You can override the defaults 
 
 |  Plugin Author(s): | Foswiki:Main.AndrewJones |
 |  Previous Author(s): | TWiki:Main.StanleyKnutson, TWiki:Main.PeterThoeny, Foswiki:Main.PaulineCheung |
-|  Copyright: | &copy; 2009 - 2011, Andrew Jones, &copy; 2005 - 2006, Peter Thoeny |
+|  Copyright: | &copy; 2009 - 2012, Andrew Jones, &copy; 2005 - 2006, Peter Thoeny |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Plugin Release: | %$RELEASE% |
 |  Plugin Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  09 Sep 2012: | v1.7: Foswikitask:Item9367: Ability to pass values to formfields; Foswikitask:Item12071: Ability to change attachments name using =TOPICATTACH=; Foswikitask:Item11587: Remove calls to deprecated API's; Foswikitask:Item12020: spelling fixes -- Foswiki:Main.AndrewJones |
 |  09 Jun 2011: | v1.6: Foswikitask:Item10863 - Expand macros in parameters -- Foswiki:Main.AndrewJones |
 |  06 May 2011: | v1.5: No longer load preferences from plugin topic; doc updates -- Foswiki:Main.AndrewJones |
 |  08 Feb 2010: | v1.4: Foswikitask:Item8281 - Changed the way extra parameters are passed using =%<nop>TOPICCREATE%=, so that special characters can now be passed -- Foswiki:Main.AndrewJones |
 |  08 Feb 2010: | v1.3: Foswikitask:Item8480 - Fix for setting the parent; Fix for using Macros as the parent in =%<nop>TOPICCREATE%= -- Foswiki:Main.AndrewJones |
 |  28 Jan 2010: | v1.2: Foswikitask:Item8438 - =%<nop>TOPICCREATE%= now allows you to define a parent for the new topic -- Foswiki:Main.AndrewJones |
 |  29 Sep 2009: | v1.1: Foswikitask:Item4757 - Fixed warning when using =%<nop>TOPICATTACH%= -- Foswiki:Main.AndrewJones |
-|  31 Mar 2009: | v1.0: Foswikitask:Item1262 - Ported to Foswiki and released as 1.0; Removed dependency on Unix utilities =cp= and =mkdir=, should now work on any OS that Foswiki does; Improved code to make it cleaner and use more of the official API; Removed depreciated API calls -- Foswiki:Main.AndrewJones |
+|  31 Mar 2009: | v1.0: Foswikitask:Item1262 - Ported to Foswiki and released as 1.0; Removed dependency on Unix utilities =cp= and =mkdir=, should now work on any OS that Foswiki does; Improved code to make it cleaner and use more of the official API; Removed deprecated API calls -- Foswiki:Main.AndrewJones |
 |  11686 | TWikibug:Item2956 - Freeze !TWikiRelease04x00 and copy it to new branch MAIN |
 |  10613 | TWikibug:Item2473 - files in pub and data directories shouldn't be marked executable in svn (Ordnung muss sein) |
 |  7960 | TWikibug:Item1238 - plugins cleanup: added BuildContrib support/infrastructure |

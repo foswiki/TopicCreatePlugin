@@ -12,9 +12,20 @@ use Foswiki::Func;
 use Foswiki::Plugins::TopicCreatePlugin;
 
 my $simpleTemplate = "SimpleTemplateTopic";
+my $attachedFile   = "simple.txt";
+my $attachedName   = "Simples";
 
 sub new {
     my $self = shift()->SUPER::new(@_);
+
+    # try and guess where our test attachments are
+    $self->{attachmentDir} =
+"$Foswiki::cfg{WorkingDir}/../../TopicCreatePlugin/test/unit/TopicCreatePlugin/resources/";
+    if ( !-e $self->{attachmentDir} ) {
+        die
+"Can't find attachment_examples directory (tried $self->{attachmentDir})";
+    }
+
     return $self;
 }
 
@@ -199,6 +210,47 @@ HERE
     );
 }
 
+sub test_copy_attachments {
+    my $this = shift;
+
+    my $template  = "CopyAttachentsTemplateTopic";
+    my $testTopic = "CopyAttachentsTest";
+
+    Foswiki::Func::saveTopic( $this->{test_web}, $template, undef, <<'HERE');
+---++ Template Topic
+A template topic with attachments
+
+HERE
+
+    Foswiki::Func::saveAttachment( $this->{test_web}, $this->{test_topic},
+        $attachedName, { file => $this->{attachmentDir} . $attachedFile } );
+
+    my $sampleText = <<"HERE";
+%META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
+%META:TOPICPARENT{name="WebHome"}%
+
+%TOPICCREATE{template="$template" topic="$testTopic"}%
+
+HERE
+
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
+    Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
+        $this->{test_topic}, $this->{test_web} );
+
+    # child topic should now exist
+    $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
+        "$testTopic was not created" );
+
+    # attachment should be copied over
+    $this->assert(
+        Foswiki::Func::attachmentExists(
+            $this->{test_web}, $this->{test_topic}, $attachedName
+        ),
+        "attachment was not attached"
+    );
+}
+
 # test creating a topic with parameters
 sub test_parameters {
     my $this = shift;
@@ -233,7 +285,7 @@ HERE
     $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
         "$testTopic was not created" );
 
- # parent of newly created topic should be same as the topic it was created from
+    # parameters should be set correctly
     my ( undef, $text ) =
       Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
 
@@ -285,6 +337,72 @@ HERE
         $text, "param1 does not appear in the new topic" );
     $this->assert_matches( "Param2: Henry",
         $text, "param2 does not appear in the new topic" );
+}
+
+sub test_parameter_for_form_fields {
+    my $this = shift;
+
+    my $formTopic = "FormParamsForm";
+    my $template  = "FormParamsTemplateTopic";
+    my $testTopic = "FormParamsTest";
+
+    # create a form definition topic
+    Foswiki::Func::saveTopic( $this->{test_web}, $formTopic, undef, <<'HERE');
+| *Name* | *Type* | *Size* |
+| param1 | text | 30 |
+| param2 | text | 30 |
+HERE
+
+    Foswiki::Func::saveTopic( $this->{test_web}, $template, undef, <<'HERE');
+---++ Template Topic
+A template topic with parameters
+
+   * Param1: %URLPARAM{"param1"}%
+   * Param2: %URLPARAM{"param2"}%
+
+%META:FORM{name="FormParamsForm"}%
+%META:FIELD{name="param1" title="param1" value=""}%
+%META:FIELD{name="param2" title="param2" value=""}%
+HERE
+
+    my $sampleText = <<"HERE";
+%META:TOPICINFO{author="guest" date="1053267450" format="1.0" version="1.35"}%
+%META:TOPICPARENT{name="WebHome"}%
+
+%TOPICCREATE{template="$template" topic="$testTopic" parameters="param1=Bergkamp&param2=%HOMETOPIC%"}%
+
+HERE
+
+    Foswiki::Plugins::TopicCreatePlugin::initPlugin( $this->{test_topic},
+        $this->{test_web}, 'guest', $Foswiki::cfg{SystemWebName} );
+    Foswiki::Plugins::TopicCreatePlugin::beforeSaveHandler( $sampleText,
+        $this->{test_topic}, $this->{test_web} );
+
+    # child topic should now exist
+    $this->assert( Foswiki::Func::topicExists( $this->{test_web}, $testTopic ),
+        "$testTopic was not created" );
+
+    # get new topic
+    my ( $meta, $text ) =
+      Foswiki::Func::readTopic( $this->{test_web}, $testTopic );
+
+    # check form fields
+    $this->assert_matches(
+        "Bergkamp",
+        $meta->get( 'FIELD', 'param1' )->{value},
+        "field param1 was not set"
+    );
+    $this->assert_matches(
+        "WebHome",
+        $meta->get( 'FIELD', 'param2' )->{value},
+        "field param2 was not set"
+    );
+
+    # check topic
+    $this->assert_matches( "Bergkamp", $text,
+        "param1 does not appear in the new topic" );
+    $this->assert_matches( "WebHome", $text,
+        "param2 does not appear in the new topic" );
 }
 
 # test creating a topic with parameters

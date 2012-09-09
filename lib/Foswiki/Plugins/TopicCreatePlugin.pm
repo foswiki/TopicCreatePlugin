@@ -1,7 +1,7 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 - 2011 Andrew Jones, http://andrew-jones.com
-# Copyright (C) 2005-2006 Peter Thoeny, peter@thoeny.org
+# Copyright (C) 2009 - 2012 Andrew Jones, http://andrew-jones.com
+# Copyright (C) 2005 - 2006 Peter Thoeny, peter@thoeny.org
 #
 # For licensing info read LICENSE file in the Foswiki root.
 # This program is free software; you can redistribute it and/or
@@ -21,11 +21,11 @@ package Foswiki::Plugins::TopicCreatePlugin;
 
 # =========================
 use vars qw(
-  $web $topic $user $installWeb $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
+  $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
 );
 
 $VERSION = '$Rev$';
-$RELEASE = '1.6';
+$RELEASE = '1.7';
 $SHORTDESCRIPTION =
   'Automatically create a set of topics and attachments at topic save time';
 $NO_PREFS_IN_TOPIC = 1;
@@ -35,7 +35,7 @@ $doInit = 0;
 
 # =========================
 sub initPlugin {
-    ( $topic, $web, $user, $installWeb ) = @_;
+    ( $topic, $web, $user ) = @_;
 
     # Get plugin debug flag
     $debug = Foswiki::Func::getPluginPreferencesFlag("DEBUG");
@@ -50,7 +50,7 @@ sub initPlugin {
 
 # =========================
 sub beforeSaveHandler {
-### my ( $text, $topic, $web ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
+### my ( $text, $topic, $web, $meta ) = @_;   # do not uncomment, use $_[0], $_[1]... instead
 
     Foswiki::Func::writeDebug(
         "- TopicCreatePlugin::beforeSaveHandler( $_[2].$_[1] )")
@@ -66,12 +66,11 @@ sub beforeSaveHandler {
 
     if ($doInit) {
         $doInit = 0;
-        Foswiki::Plugins::TopicCreatePlugin::Func::init( $web, $topic, $user,
-            $debug );
+        Foswiki::Plugins::TopicCreatePlugin::Func::init($debug);
     }
 
     $_[0] =~
-s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1], $_[0] )/ge;
+s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1])/ge;
 
 # To be completed, tested and documented
 # $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/ge;
@@ -79,25 +78,7 @@ s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTo
     if ( $_[0] =~ /%TOPICATTACH/ ) {
         my @attachMetaData = ();
         $_[0] =~
-s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, \@attachMetaData)/ge;
-        my $fileName = "";
-        foreach my $fileMeta (@attachMetaData) {
-            $fileMeta =~ m/META:FILEATTACHMENT\{name\=\"(.*?)\"/;
-            $fileName = $1;
-            unless ( $_[0] =~ m/META:FILEATTACHMENT\{name\=\"$fileName/ ) {
-                &Foswiki::Func::writeDebug(
-                    "handleTopicAttach:: in unless $fileMeta")
-                  if $debug;
-                $_[0] .= "\n$fileMeta";
-            }
-            else {
-                &Foswiki::Func::writeDebug(
-                    "handleTopicAttach:: in else $fileMeta")
-                  if $debug;
-                $_[0] =~
-                  s/(%META:FILEATTACHMENT\{name=\"$fileName.*?\}%)/$fileMeta/;
-            }
-        }
+s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, $_[2], $_[1])/ge;
     }
 }
 
