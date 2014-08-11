@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" date="1132609510" format="1.1" version="$Rev: 3036 $"}%
+%META:TOPICINFO{author="ProjectContributor" date="1407719253" format="1.1" version="1"}%
 ---+!! Topic Create Plugin 
 
 This Plugin allows you to automatically create topics or attach files at topic save time. This is typically used by Foswiki applications to create a set of template based topics.
