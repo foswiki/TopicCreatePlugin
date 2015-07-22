@@ -6,14 +6,15 @@ package TopicCreateTests;
 use FoswikiFnTestCase;
 our @ISA = qw( FoswikiFnTestCase );
 
+use utf8;
 use strict;
 use Foswiki;
 use Foswiki::Func;
 use Foswiki::Plugins::TopicCreatePlugin;
 
-my $simpleTemplate = "SimpleTemplateTopic";
-my $attachedFile   = "simple.txt";
-my $attachedName   = "Simples";
+my $simpleTemplate = "SimpleTemplateAśčÁŠŤśěž";
+my $attachedFile   = "simpleAśčÁŠŤśěž.txt";
+my $attachedName   = "SimplesAśčÁŠŤśěž";
 
 sub new {
     my $self = shift()->SUPER::new(@_);

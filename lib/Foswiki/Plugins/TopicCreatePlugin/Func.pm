@@ -1,5 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
+# Copyright (C) 2015 - Foswiki contributors
 # Copyright (C) 2009 - 2012 Andrew Jones, http://andrew-jones.com
 # Copyright (C) 2005 - 2006 Peter Thoeny, peter@thoeny.org
 #
@@ -136,7 +137,7 @@ sub handleTopicCreate {
       Foswiki::Time::formatTime( time(), $Foswiki::cfg{DefaultDateFormat} );
 
     my $wikiUserName = Foswiki::Func::getWikiUserName();
-    $text =~ s/%NOP{.*?}%//gs
+    $text =~ s/%NOP\{.*?\}%//gs
       ;    # Remove filler: Use it to remove access control at time of
     $text =~ s/%NOP%//go
       ;    # topic instantiation or to prevent search from hitting a template
@@ -178,9 +179,9 @@ sub handleTopicCreate {
 
     # Recursively handle TOPICCREATE and TOPICATTCH
     $text =~
-s/%TOPICCREATE{(.*)}%[\n\r]*/handleTopicCreate( $1, $theWeb, $topicName )/ge;
+s/%TOPICCREATE\{(.*)\}%[\n\r]*/handleTopicCreate( $1, $theWeb, $topicName )/ge;
     $text =~
-s/%TOPICATTCH{(.*)}%[\n\r]*/handleTopicAttach( $1, $theWeb, $topicName )/ge;
+s/%TOPICATTCH\{(.*)\}%[\n\r]*/handleTopicAttach( $1, $theWeb, $topicName )/ge;
 
     Foswiki::Func::saveTopic( $topicWeb, $topicName, $meta, $text,
         { minor => 1 } );

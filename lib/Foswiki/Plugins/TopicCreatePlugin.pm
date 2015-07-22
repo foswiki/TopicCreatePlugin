@@ -1,5 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
+# Copyright (C) 2015, Foswiki Contributors
 # Copyright (C) 2009 - 2012 Andrew Jones, http://andrew-jones.com
 # Copyright (C) 2005 - 2006 Peter Thoeny, peter@thoeny.org
 #
@@ -24,8 +25,8 @@ use vars qw(
   $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
 );
 
-$VERSION = '$Rev$';
-$RELEASE = '1.7';
+$VERSION = 1.8;
+$RELEASE = '21 Jul 2015';
 $SHORTDESCRIPTION =
   'Automatically create a set of topics and attachments at topic save time';
 $NO_PREFS_IN_TOPIC = 1;
@@ -70,7 +71,7 @@ sub beforeSaveHandler {
     }
 
     $_[0] =~
-s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1])/ge;
+s/%TOPICCREATE\{(.*)\}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicCreate($1, $_[2], $_[1])/ge;
 
 # To be completed, tested and documented
 # $_[0] =~ s/%TOPICPATCH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicPatch($1, $_[2], $_[1], $_[0] )/ge;
@@ -78,7 +79,7 @@ s/%TOPICCREATE{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTo
     if ( $_[0] =~ /%TOPICATTACH/ ) {
         my @attachMetaData = ();
         $_[0] =~
-s/%TOPICATTACH{(.*)}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, $_[2], $_[1])/ge;
+s/%TOPICATTACH\{(.*)\}%[\n\r]*/Foswiki::Plugins::TopicCreatePlugin::Func::handleTopicAttach($1, $_[2], $_[1])/ge;
     }
 }
 
