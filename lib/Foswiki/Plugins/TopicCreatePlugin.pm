@@ -25,8 +25,8 @@ use vars qw(
   $debug $doInit $VERSION $RELEASE $SHORTDESCRIPTION $pluginName $NO_PREFS_IN_TOPIC
 );
 
-$VERSION = 1.8;
-$RELEASE = '21 Jul 2015';
+$VERSION = 1.9;
+$RELEASE = '22 Jul 2015';
 $SHORTDESCRIPTION =
   'Automatically create a set of topics and attachments at topic save time';
 $NO_PREFS_IN_TOPIC = 1;

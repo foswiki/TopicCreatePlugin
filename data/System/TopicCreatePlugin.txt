@@ -72,7 +72,7 @@ Plugin settings are stored as preferences values. You can override the defaults 
 |  Plugin Release: | %$RELEASE% |
 |  Plugin Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
-|  21 Jul 2015: | v1.8: Foswikitask:Item13350: Compatibilty with perl 5.22.0, add uft-8 unit tests. |
+|  21 Jul 2015: | v1.8: Foswikitask:Item13550: Compatibilty with perl 5.22.0, add uft-8 unit tests. |
 |  09 Sep 2012: | v1.7: Foswikitask:Item9367: Ability to pass values to formfields; Foswikitask:Item12071: Ability to change attachments name using =TOPICATTACH=; Foswikitask:Item11587: Remove calls to deprecated API's; Foswikitask:Item12020: spelling fixes -- Foswiki:Main.AndrewJones |
 |  09 Jun 2011: | v1.6: Foswikitask:Item10863 - Expand macros in parameters -- Foswiki:Main.AndrewJones |
 |  06 May 2011: | v1.5: No longer load preferences from plugin topic; doc updates -- Foswiki:Main.AndrewJones |
